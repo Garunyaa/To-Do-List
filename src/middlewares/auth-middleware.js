@@ -4,6 +4,7 @@ import { User } from "../models/user-model";
 import { errorResponse } from "../configs/response";
 
 // Authenticate token for User
+
 export const authTokenForUser = async (req, res, next) => {
   try {
     const token = req.header("Authorization");
@@ -12,8 +13,8 @@ export const authTokenForUser = async (req, res, next) => {
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const user = await User.findOne({ name: decoded.name });
-    console.log(decoded.id, "decoded id");
-    console.log(user._id.toString());
+    // console.log(decoded.id, "decoded id");
+    // console.log(user._id.toString());
     if (user === null) {
       return errorResponse(res, 404, "User not found");
     } else if (user && decoded.id !== user._id.toString()) {
@@ -27,6 +28,7 @@ export const authTokenForUser = async (req, res, next) => {
 };
 
 // Authenticate token for Admin
+
 export const authTokenForAdmin = async (req, res, next) => {
   try {
     const token = req.header("Authorization");

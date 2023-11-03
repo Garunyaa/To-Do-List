@@ -6,6 +6,7 @@ import {
   viewTasks,
   addComments,
   getPastTasks,
+  mailEndOfTheDay,
 } from "../controllers/task-controller";
 import { authTokenForUser } from "../middlewares/auth-middleware";
 import {
@@ -32,5 +33,6 @@ router.get(
   getPastTasks
 );
 router.patch("/add-comments", authTokenForUser, taskIDValidator, addComments);
+router.post("/get-mails/:id", mailEndOfTheDay);
 
 export default router;

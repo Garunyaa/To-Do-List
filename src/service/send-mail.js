@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-// import { errorResponse, successResponse } from "../configs/response";
 
 export const mailSender = async (to, subject, text) => {
   try {

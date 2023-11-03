@@ -1,7 +1,8 @@
 import { User } from "../models/user-model";
 import { Task } from "../models/task-model";
+import { mailSender } from "../service/send-mail";
 import { errorResponse, successResponse } from "../configs/response";
-import mongoose from "mongoose";
+import cron from "node-cron";
 
 // Create Task
 
@@ -60,9 +61,8 @@ export const deleteTask = async (req, res) => {
 export const viewTasks = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = new mongoose.Types.ObjectId(id);
     const currentDate = new Date();
-    currentDate.setHours(0.0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
     const endOfDay = new Date(currentDate);
     endOfDay.setHours(23, 59, 59, 999);
     const user = await User.findById(id);
@@ -70,7 +70,7 @@ export const viewTasks = async (req, res) => {
       return errorResponse(res, 404, "User not found");
     }
     const tasks = await Task.find({
-      created_by: userId,
+      created_by: id,
       deadline: { $gte: currentDate, $lte: endOfDay },
     });
     successResponse(res, 200, "Tasks list", tasks);
@@ -85,8 +85,6 @@ export const viewTasks = async (req, res) => {
 export const getPastTasks = async (req, res) => {
   try {
     const { id } = req.params;
-    // const userId = new mongoose.Types.ObjectId(id);
-    // console.log(userId, "user id");
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
     const user = await User.findById(id);
@@ -120,6 +118,37 @@ export const addComments = async (req, res) => {
     }
     await task.save();
     return successResponse(res, 201, "Added comments to task", task.comments);
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, 500, "Internal Server Error");
+  }
+};
+
+// Send mail about Task status end of the day
+
+export const mailEndOfTheDay = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentDate = new Date();
+    currentDate.setHours(0.0, 0, 0);
+    const endOfDay = new Date(currentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    const user = await User.findById(id);
+    if (!user) {
+      return errorResponse(res, 404, "User not found");
+    }
+    const tasks = await Task.find({
+      created_by: id,
+      deadline: { $gte: currentDate, $lte: endOfDay },
+    });
+    cron.schedule("* 18 * * *", async () => {
+      const subject = "To-Do list status";
+      const text = `Your today's To-do list status is - ${tasks}`;
+
+      mailSender(user.email, subject, text);
+    });
+
+    successResponse(res, 200, "Tasks list", tasks);
   } catch (error) {
     console.error(error);
     return errorResponse(res, 500, "Internal Server Error");
