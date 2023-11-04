@@ -20,7 +20,9 @@ export const createTask = async (req, res) => {
     return successResponse(res, 201, "Task created", newTask);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -36,7 +38,9 @@ export const updateTask = async (req, res) => {
     successResponse(res, 200, "Task updated", updatedTask);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -47,12 +51,14 @@ export const deleteTask = async (req, res) => {
     const { id } = req.params;
     const task = await Task.findByIdAndDelete(id);
     if (!task) {
-      return errorResponse(res, 404, "Task not found");
+      return errorResponse(res, 404, "Task not found", {});
     }
     successResponse(res, 200, "Task deleted", { deleted_task: task });
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -67,7 +73,7 @@ export const viewTasks = async (req, res) => {
     endOfDay.setHours(23, 59, 59, 999);
     const user = await User.findById(id);
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
     const tasks = await Task.find({
       created_by: id,
@@ -76,7 +82,9 @@ export const viewTasks = async (req, res) => {
     successResponse(res, 200, "Tasks list", tasks);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -90,7 +98,7 @@ export const getPastTasks = async (req, res) => {
     const user = await User.findById(id);
     console.log(user, "user");
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
     const tasks = await Task.find({
       created_by: id,
@@ -99,7 +107,9 @@ export const getPastTasks = async (req, res) => {
     successResponse(res, 200, "Tasks list", tasks);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -114,13 +124,15 @@ export const addComments = async (req, res) => {
       { new: true }
     );
     if (!task) {
-      return errorResponse(res, 404, "Task not found");
+      return errorResponse(res, 404, "Task not found", {});
     }
     await task.save();
     return successResponse(res, 201, "Added comments to task", task.comments);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -135,22 +147,32 @@ export const mailEndOfTheDay = async (req, res) => {
     endOfDay.setHours(23, 59, 59, 999);
     const user = await User.findById(id);
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
-    const tasks = await Task.find({
-      created_by: id,
-      deadline: { $gte: currentDate, $lte: endOfDay },
-    });
+
     cron.schedule("* 18 * * *", async () => {
+      const tasks = await Task.find({
+        created_by: id,
+        created_at: { $gte: currentDate, $lte: endOfDay },
+      });
+
       const subject = "To-Do list status";
-      const text = `Your today's To-do list status is - ${tasks}`;
+      const text = `Your today's To-do list status is:       
+      ${tasks
+        .map(
+          (task) =>
+            `\n- ${task.title}: ${task.description} \n Status: ${task.status})`
+        )
+        .join("\n")}
+      `;
 
       mailSender(user.email, subject, text);
+      return successResponse(res, 200, "Tasks list", tasks);
     });
-
-    successResponse(res, 200, "Tasks list", tasks);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };

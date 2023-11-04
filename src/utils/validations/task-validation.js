@@ -21,7 +21,9 @@ export const taskValidator = async (req, res, next) => {
     next();
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -32,7 +34,9 @@ export const taskIdValidator = async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -43,6 +47,8 @@ export const taskIDValidator = async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };

@@ -18,12 +18,14 @@ export const userValidator = (req, res, next) => {
   try {
     const { error } = userValidation.validate(req.body);
     if (error) {
-      return errorResponse(res, 404, { error: error.details[0].message });
+      return errorResponse(res, 404, { error: error.details[0].message }, {});
     }
     next();
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -44,7 +46,9 @@ export const loginValidator = (req, res, next) => {
     next();
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -57,6 +61,25 @@ export const userIdValidator = async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
+  }
+};
+
+// send-OTP Validator
+
+export const OtpValidator = (req, res, next) => {
+  try {
+    const { error } = loginValidation.validate(req.body);
+    if (error) {
+      return errorResponse(res, 404, { error: error.details[0].message });
+    }
+    next();
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };

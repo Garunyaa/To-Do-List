@@ -19,7 +19,9 @@ export const createAdmin = async (req, res) => {
     return successResponse(res, 201, "Admin Created Successfully", admin);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -31,7 +33,7 @@ export const adminLogin = async (req, res) => {
     const admin = await Admin.findOne({ email: email });
 
     if (!email || !password) {
-      return errorResponse(res, 400, "Invalid email or OTP");
+      return errorResponse(res, 400, "Invalid email or OTP", {});
     }
     const authToken = jwt.sign(
       { name: admin.name, email: admin.email, id: admin._id },
@@ -40,7 +42,7 @@ export const adminLogin = async (req, res) => {
     );
     const passwordMatch = await bcrypt.compare(password, admin.password);
     if (!passwordMatch) {
-      return errorResponse(res, 400, "Incorrect password");
+      return errorResponse(res, 400, "Incorrect password", {});
     }
 
     return successResponse(res, 200, "Login Successful", {
@@ -49,7 +51,9 @@ export const adminLogin = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -61,7 +65,9 @@ export const listAllUsers = async (req, res) => {
     return successResponse(res, 200, "Listing all users", users);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -72,18 +78,20 @@ export const blockUser = async (req, res) => {
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
     if (user.is_blocked === false) {
       user.is_blocked = true;
       await user.save();
     } else {
-      return errorResponse(res, 400, "User already blocked");
+      return errorResponse(res, 400, "User already blocked", {});
     }
     successResponse(res, 200, "User blocked", { blocked_user: id });
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -94,7 +102,7 @@ export const unblockUser = async (req, res) => {
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     } else if (user.is_blocked === true) {
       user.status = false;
       await user.save();
@@ -102,11 +110,13 @@ export const unblockUser = async (req, res) => {
         unblocked_user: id,
       });
     } else {
-      return errorResponse(res, 400, "User not blocked");
+      return errorResponse(res, 400, "User not blocked", {});
     }
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -117,12 +127,14 @@ export const getUserInfo = async (req, res) => {
     const { id } = req.params;
     const user = await User.findById(id).select({ password: 0 }).exec();
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
     return successResponse(res, 200, "Specific user details", user);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -136,22 +148,23 @@ export const reviewKYC = async (req, res) => {
       .select({ password: 0 })
       .exec();
     if (!users) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
     return successResponse(res, 200, "KYC Document", users);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
 export const verifyKYC = async (req, res) => {
   try {
     const { id } = req.params;
-    const { kyc_verified } = req.body;
     const user = await User.findById(id);
     if (!user) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     }
     const kycVerification = await User.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -160,6 +173,8 @@ export const verifyKYC = async (req, res) => {
     return successResponse(res, 200, "KYC Document Verified", kycVerification);
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };

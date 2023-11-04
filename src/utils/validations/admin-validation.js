@@ -15,11 +15,13 @@ export const adminValidator = (req, res, next) => {
   try {
     const { error } = adminValidation.validate(req.body);
     if (error) {
-      return errorResponse(res, 404, { error: error.details[0].message });
+      return errorResponse(res, 404, { error: error.details[0].message }, {});
     }
     next();
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };

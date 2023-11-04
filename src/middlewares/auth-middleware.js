@@ -9,21 +9,21 @@ export const authTokenForUser = async (req, res, next) => {
   try {
     const token = req.header("Authorization");
     if (!token) {
-      return errorResponse(res, 400, "No token provided");
+      return errorResponse(res, 400, "No token provided", {});
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const user = await User.findOne({ name: decoded.name });
-    // console.log(decoded.id, "decoded id");
-    // console.log(user._id.toString());
     if (user === null) {
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 404, "User not found", {});
     } else if (user && decoded.id !== user._id.toString()) {
-      return errorResponse(res, 403, "Forbidden");
+      return errorResponse(res, 403, "Forbidden", {});
     }
     next();
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };
 
@@ -33,18 +33,20 @@ export const authTokenForAdmin = async (req, res, next) => {
   try {
     const token = req.header("Authorization");
     if (!token) {
-      return errorResponse(res, 400, "No token provided");
+      return errorResponse(res, 400, "No token provided", {});
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const admin = await Admin.find({ name: decoded.name });
     if (admin === null) {
-      return errorResponse(res, 404, "Admin not found");
+      return errorResponse(res, 404, "Admin not found", {});
     } else if (!decoded) {
-      return errorResponse(res, 403, "Forbidden");
+      return errorResponse(res, 403, "Forbidden", {});
     }
     next();
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 500, "Internal Server Error");
+    return errorResponse(res, 500, "Internal Server Error", {
+      error: error.message,
+    });
   }
 };

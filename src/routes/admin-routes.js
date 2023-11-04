@@ -34,6 +34,6 @@ router.get(
   getUserInfo
 );
 router.get("/review-kyc", authTokenForAdmin, reviewKYC);
-router.patch("/verify-kyc/:id", authTokenForAdmin, verifyKYC);
+router.patch("/verify-kyc/:id", authTokenForAdmin, userIdValidator, verifyKYC);
 
 export default router;

@@ -33,6 +33,6 @@ router.get(
   getPastTasks
 );
 router.patch("/add-comments", authTokenForUser, taskIDValidator, addComments);
-router.post("/get-mails/:id", mailEndOfTheDay);
+router.get("/get-mails/:id", userIdValidator, mailEndOfTheDay);
 
 export default router;
